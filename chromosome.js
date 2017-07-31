@@ -1,12 +1,7 @@
 const Operation = require('./operations/operation');
 const OperationTypes = Operation.prototype.operationTypes;
 const Gene = require('./gene');
-
-const getRandomInt = (min, max) => {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min)) + min;
-};
+const helper = require('./helper');
 
 const defaultOptions = {
     functionProbability: 0.85,
@@ -26,7 +21,7 @@ function Chromosome(functions, variables){
     this.nodes = () => {return this.gene.nodes()};
 };
 
-Chromosome.prototype._generateFromJson = (geneJson, functions, variables) => {
+Chromosome.prototype._generateFromNodes = (geneJson, functions, variables) => {
     let chromosome = new Chromosome(functions, variables);
     let mapGene = (gene) => {
         let geneId = gene.id;
@@ -58,10 +53,10 @@ Chromosome.prototype._generate = (functions, variables, options) => {
     };
     let getGene = (functions, variables, fnProb, currentDepth, minDepth, maxDepth) => {
         if (currentDepth >= minDepth && (currentDepth >= maxDepth || stopExpand(fnProb))) {
-            return new Gene(getRandomInt(0, variables.length), 'variable', variables);
+            return new Gene(helper.getRandomInt(0, variables.length), 'variable', variables);
         } else {
             currentDepth++;
-            let fnId = getRandomInt(0, functions.length);
+            let fnId = helper.getRandomInt(0, functions.length);
             let fn = functions[fnId];
             if (fn.type === OperationTypes.UNARY) {
                 return new Gene(fnId, 'function', functions, getGene(functions, variables, fnProb, currentDepth, minDepth, maxDepth));

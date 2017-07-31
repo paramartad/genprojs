@@ -31,13 +31,4 @@ let population = Array.from(Array(populationSize), () => {
     return Chromosome.prototype._generate(availableOps, variables, options);
 });
 
-population.forEach(individual => {
-    console.log(individual.toString());
-    console.log(individual.val());
-    let replicate = Chromosome.prototype._generateFromJson(individual.nodes(), availableOps, variables);
-    console.log(replicate.toString());
-    console.log(replicate.val());
-    let replicate2 = Chromosome.prototype._generateFromJson(replicate.nodes(), availableOps, variables);
-    console.log(replicate2.toString());
-    console.log(replicate2.val());
-});
+let offpsrings = rp.crossover(population[0], population[1], availableOps, variables);
