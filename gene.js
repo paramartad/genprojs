@@ -1,29 +1,28 @@
 
-function Gene(fn, ...args) {
-    this.isFunction = Object.prototype.toString.call(fn) === '[object Function]';
-    this.isGene = Object.prototype.toString.call(fn) === '[object Object]';
-    this.isPrim = !this.isFunction && !this.isGene;
+function Gene(id, type, collection, ...args) {
+    this.isVariable = type === 'variable';
+    this.isGene = type === 'function';
 
-    this.fn = fn;
+    this.id = id;
+    this.type = type;
+    this.collection = collection;
     this.args = args;
-    this.id = fn.id;
     
-    this.val = () => this._val(this.fn, this.args, this.isGene, this.isPrim);
-    this.toString = () => this._toString(this.fn, this.args, this.isPrim);
-    this.depth = () => this._depth(this.args, this.isPrim);
-    this.length = () => this._length(this.args, this.isPrim);
-    this.nodes = () => this._nodes(this.fn, this.args, this.isPrim);
+    this.val = () => this._val(this.collection, this.id, this.args, this.isGene, this.isVariable);
+    this.toString = () => this._toString(this.collection, this.id, this.args, this.isVariable);
+    this.depth = () => this._depth(this.args, this.isVariable);
+    this.length = () => this._length(this.args, this.isVariable);
+    this.nodes = () => this._nodes(this.id, this.type, this.args, this.isVariable);
 };
 
-Gene.prototype._val = (fn, args, isGene, isPrim) => {
-    if (isPrim) return fn;
-    else if (isGene) return fn.val();
+Gene.prototype._val = (collection, id, args, isGene, isVariable) => {
+    var fn = collection[id];
+    if (isVariable) return fn;
+    else if (isGene) return fn.val(collection);
 
     resolvedArgs = args.map(arg => {
         if (Object.prototype.toString.call(arg) === '[object Object]') {
-            return arg.val();
-        } else if (Object.prototype.toString.call(arg) === '[object Function]') {
-            return arg();
+            return arg.val(collection);
         } else {
             return arg;
         }
@@ -32,14 +31,15 @@ Gene.prototype._val = (fn, args, isGene, isPrim) => {
     return fn.apply(this, resolvedArgs);
 };
 
-Gene.prototype._toString = (fn, args, isPrim) => {
-    if (isPrim) return fn;
+Gene.prototype._toString = (collection, id, args, isVariable) => {
+    var fn = collection[id];
+    if (isVariable) return fn;
 
     return fn.display(...args);
 };
 
-Gene.prototype._depth = (args, isPrim) => {
-    if (isPrim) return 0;
+Gene.prototype._depth = (args, isVariable) => {
+    if (isVariable) return 0;
 
     var maxChildDepth = Math.max.apply(this, args.map(arg => {
         return arg.depth();
@@ -48,8 +48,8 @@ Gene.prototype._depth = (args, isPrim) => {
     return maxChildDepth + 1;
 };
 
-Gene.prototype._length = (args, isPrim) => {
-    if (isPrim) return 1;
+Gene.prototype._length = (args, isVariable) => {
+    if (isVariable) return 1;
     
     var childLength = args.reduce((acc, arg) => {
         return acc + arg.length();
@@ -58,12 +58,14 @@ Gene.prototype._length = (args, isPrim) => {
     return childLength + 1;
 };
 
-Gene.prototype._nodes = (fn, args, isPrim) => {
-    if (isPrim) return [fn];
+Gene.prototype._nodes = (id, type, args, isVariable) => {
+    if (isVariable) return {id, type};
+
     var childNodes = args.reduce((acc, arg) => {
-        return Array.prototype.concat.apply(acc, [arg.nodes()]);
+        acc.push(arg.nodes())
+        return acc;
     }, []);
-    return Array.prototype.concat.apply([fn], childNodes);
+    return result = [{id, type}, childNodes]
 };
 
 module.exports = Gene;
