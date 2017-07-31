@@ -9,18 +9,15 @@ const getRandomInt = (min, max) => {
 };
 
 const defaultOptions = {
-    operationProbability: 0.85,
+    functionProbability: 0.85,
     minDepth: 2,
     maxDepth: 7
 };
 
-function Chromosome(ops, variables, options){
-    if (Object.prototype.toString.call(ops) == '[object Array]'){
-        options = Object.assign(defaultOptions, options);
-        this.gene = this._generate(ops, variables, options.operationProbability, options.minDepth, options.maxDepth);
-    } else {
-        this.gene = new Gene(ops.fn);
-    }
+function Chromosome(functions, variables){
+    this.gene = null;
+    this.functions = functions;
+    this.variables = variables;
 
     this.toString = () => {return this.gene.toString()};
     this.val = () => {return this.gene.val()};
@@ -29,26 +26,54 @@ function Chromosome(ops, variables, options){
     this.nodes = () => {return this.gene.nodes()};
 };
 
-Chromosome.prototype._generate = (ops, variables, opProb, minDepth, maxDepth) => {
+Chromosome.prototype._generateFromJson = (geneJson, functions, variables) => {
+    let chromosome = new Chromosome(functions, variables);
+    let mapGene = (gene) => {
+        let geneId = gene.id;
+        let geneType = gene.type;
+        let geneArgs = gene.args;
+        let collection = geneType === 'function' ? functions : variables;
+        if (!geneArgs) {
+            return new Gene(geneId, geneType, collection);
+        }
+        
+        let resolvedGeneArgs = geneArgs.map(g => mapGene(g));
+        return new Gene(geneId, geneType, collection, ...resolvedGeneArgs);
+    };
+    chromosome.gene = mapGene(geneJson);
+    return chromosome;
+};
+
+Chromosome.prototype._generate = (functions, variables, options) => {
+
+    options = Object.assign(defaultOptions, options);
+    let fnProb = options.functionProbability;
+    let minDepth = options.minDepth;
+    let maxDepth =  options.maxDepth;
+
+    let chromosome = new Chromosome(functions, variables);
+
     let stopExpand = (prob) => {
         return Math.random() > prob;
     };
-    let getGene = (ops, variables, opProb, currentDepth, minDepth, maxDepth) => {
-        if (currentDepth >= minDepth && (currentDepth >= maxDepth || stopExpand(opProb))) {
-            return new Gene(variables[getRandomInt(0, variables.length)]);
+    let getGene = (functions, variables, fnProb, currentDepth, minDepth, maxDepth) => {
+        if (currentDepth >= minDepth && (currentDepth >= maxDepth || stopExpand(fnProb))) {
+            return new Gene(getRandomInt(0, variables.length), 'variable', variables);
         } else {
             currentDepth++;
-            let fn = ops[getRandomInt(0, ops.length)];
+            let fnId = getRandomInt(0, functions.length);
+            let fn = functions[fnId];
             if (fn.type === OperationTypes.UNARY) {
-                return new Gene(fn, getGene(ops, variables, opProb, currentDepth, minDepth, maxDepth));
+                return new Gene(fnId, 'function', functions, getGene(functions, variables, fnProb, currentDepth, minDepth, maxDepth));
             } else if (fn.type === OperationTypes.BINARY) {
-                let gene1 = getGene(ops, variables, opProb, currentDepth, minDepth, maxDepth);
-                let gene2 = getGene(ops, variables, opProb, currentDepth, minDepth, maxDepth);
-                return new Gene(fn, gene1, gene2);
+                let gene1 = getGene(functions, variables, fnProb, currentDepth, minDepth, maxDepth);
+                let gene2 = getGene(functions, variables, fnProb, currentDepth, minDepth, maxDepth);
+                return new Gene(fnId, 'function', functions, gene1, gene2);
             }
         }
     };
-    return getGene(ops, variables, opProb, 0, minDepth, maxDepth);
+    chromosome.gene = getGene(functions, variables, fnProb, 0, minDepth, maxDepth);
+    return chromosome;
 };
 
 module.exports = Chromosome;
