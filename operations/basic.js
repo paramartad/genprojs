@@ -61,7 +61,7 @@ let increment = new Operation(
     }, 
     OperationTypes.UNARY, 
     (val) => {
-        return '(' + val + ' + 1)';
+        return '(' + val + '++)';
     }
 );
 
@@ -70,7 +70,7 @@ let decrement = new Operation((val) => {
     },
     OperationTypes.UNARY,
     (val) => {
-        return '(' + val + ' - 1)';
+        return '(' + val + '--)';
     }
 );
 
