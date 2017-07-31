@@ -16,6 +16,7 @@ function Chromosome(functions, variables){
 
     this.toString = () => {return this.gene.toString()};
     this.val = () => {return this.gene.val()};
+    this.map = (mapFn) => {return this.gene.map(mapFn)};
     this.depth = () => {return this.gene.depth()};
     this.length = () => {return this.gene.length()};
     this.nodes = () => {return this.gene.nodes()};

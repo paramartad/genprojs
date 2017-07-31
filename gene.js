@@ -10,9 +10,13 @@ function Gene(id, type, collection, ...args) {
     
     this.val = () => this._val(this.collection, this.id, this.args, this.isFunction, this.isVariable);
     this.toString = () => this._toString(this.collection, this.id, this.args, this.isVariable);
+    this.map = (mapFn) => this._map(this.collection, this.id, this.type, this.args, this.isVariable, mapFn);
     this.depth = () => this._depth(this.args, this.isVariable);
     this.length = () => this._length(this.args, this.isVariable);
-    this.nodes = () => this._nodes(this.id, this.type, this.args, this.isVariable);
+
+    this.nodes = () => this.map((fn, id, type, args) => {
+        return args && args.length ? {id, type, args} : {id, type};
+    });;
 };
 
 Gene.prototype._val = (collection, id, args, isFunction, isVariable) => {
@@ -56,14 +60,18 @@ Gene.prototype._length = (args, isVariable) => {
     return childLength + 1;
 };
 
-Gene.prototype._nodes = (id, type, args, isVariable) => {
-    if (isVariable) return {id, type};
 
-    let childNodes = args.reduce((acc, arg) => {
-        acc.push(arg.nodes())
+Gene.prototype._map = (collection, id, type, args, isVariable, mapFn) => {
+    let fn = collection[id];
+    if (isVariable) {
+        return mapFn(fn, id, type, args);
+    };
+
+    let resolvedChildren = args.reduce((acc, arg) => {
+        acc.push(arg.map(mapFn))
         return acc;
     }, []);
-    return result = {id, type, args: childNodes};
+    return mapFn(fn, id, type, resolvedChildren);
 };
 
 module.exports = Gene;

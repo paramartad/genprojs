@@ -38,8 +38,7 @@ let fitnessResults = population.map(individual => {
     return b.fitness - a.fitness;
 });
 
-fitnessResults.forEach(fr => {
-    console.log(fr.individual.toString() + " = " + fr.fitness);
+let mutatedOffsprings = population.map(individual => {
+    return rp.mutate(individual, options.mutationProbability, availableOps, variables);
 });
-
 let offpsrings = rp.crossover(population[0], population[1], availableOps, variables);

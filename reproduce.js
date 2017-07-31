@@ -67,10 +67,28 @@ let crossover = (parent1, parent2, functions, variables) => {
     return [offspring1, offspring2];
 };
 
-let mutate = (parent1, mutationProbability, functions, variables) => {
+let mutate = (parent, mutationProbability, functions, variables) => {
+    let hasMutation = false;
+    let offspringNodes = parent.map((fn, id, type, args) => {
+        if (Math.random() > mutationProbability) {
+            return args && args.length ? {id, type, args} : {id, type};
+        }
+        
+        hasMutation = true;
+
+        let isFunction = type === 'function';
+        let collection = isFunction ? functions : variables;
+        let mutatedId = id;
+        while (mutatedId === id) {
+            mutatedId = helper.getRandomInt(0, collection.length);
+        }
+        return args && args.length ? {mutatedId, type, args} : {mutatedId, type};
+    });
     
+    return hasMutation ? Chromosome.prototype._generateFromNodes(offspringNodes) : parent;
 };
 
 module.exports = {
-    crossover
+    crossover,
+    mutate
 };
