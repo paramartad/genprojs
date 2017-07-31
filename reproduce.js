@@ -2,25 +2,38 @@ const Chromosome = require('./chromosome');
 const helper = require('./helper');
 
 
-let getNodeAt = (nodes, directions) => {
+
+let getHierarchy = (index) => {
+    if (index <= 0) return [];
+    
+    let direction = (index-1) % 2;
+    let parentIndex = Math.floor((index - 1)/2);
+    return Array.prototype.concat.call(getHierarchy(parentIndex), direction);
+};
+
+let getNodeAt = (currentNode, directions) => {
     let direction = directions.shift();
-    let node = nodes[direction];
-    if (!node) return node;
-    if (directions.length == 0 || !nodes.args) return node;
-    return getNodeAt(node.args, directions);
+    let nextNode = currentNode.args[direction];
+    if (!nextNode) return null;
+
+    if (directions.length == 0) return nextNode;
+    else if (!nextNode.args) return null;
+
+    return getNodeAt(nextNode, directions);
 };
 
 let assignNode = (nodes, candidateNode, hierarchy) => {
-    let iterateNodes = (args, directions) => {
+    let iterateNodes = (currentNode, directions) => {
         let direction = directions.shift();
+        let nextNode = currentNode.args[direction];
         if (directions.length == 0) {
-            args[direction] = candidateNode;
+            nextNode = candidateNode;
             return;
         }
-        iterateNodes(args[direction].args, directions);
+        iterateNodes(nextNode, directions);
     };
 
-    iterateNodes(nodes.args, hierarchy)
+    iterateNodes(nodes, hierarchy)
 };
 
 let crossover = (parent1, parent2, functions, variables) => {
@@ -29,14 +42,6 @@ let crossover = (parent1, parent2, functions, variables) => {
 
     let depth = Math.min(parent1.depth(), parent2.depth()) + 1;
     let maxLength = Math.pow(2, depth) - 1;
-
-    let getHierarchy = (index) => {
-        if (index <= 0) return [];
-        
-        let direction = (index-1) % 2;
-        let parentIndex = Math.floor((index - 1)/2);
-        return Array.prototype.concat.call(getHierarchy(parentIndex), direction);
-    };
 
     let offspring1Nodes = JSON.parse(JSON.stringify(parent1Nodes));
     let offspring2Nodes = JSON.parse(JSON.stringify(parent2Nodes));
@@ -47,12 +52,8 @@ let crossover = (parent1, parent2, functions, variables) => {
         hierarchy = getHierarchy(randomPos);
         let hierarchy1 = hierarchy.slice(0);
         let hierarchy2 = hierarchy.slice(0);
-        swapCandidate1 = getNodeAt(parent1Nodes.args, hierarchy1);
-        swapCandidate2 = getNodeAt(parent2Nodes.args, hierarchy2);
-        
-        if (swapCandidate1 && swapCandidate2) {
-            console.log('crossing over at node ' + randomPos);
-        };
+        swapCandidate1 = getNodeAt(parent1Nodes, hierarchy1);
+        swapCandidate2 = getNodeAt(parent2Nodes, hierarchy2);
     }
     let tempSwap = JSON.parse(JSON.stringify(swapCandidate2));
     let hierarchy1 = hierarchy.slice(0);
@@ -63,8 +64,11 @@ let crossover = (parent1, parent2, functions, variables) => {
     let offspring1 = Chromosome.prototype._generateFromNodes(offspring1Nodes, functions, variables);
     let offspring2 = Chromosome.prototype._generateFromNodes(offspring2Nodes, functions, variables);
     
-
     return [offspring1, offspring2];
+};
+
+let mutate = (parent1, mutationProbability, functions, variables) => {
+    
 };
 
 module.exports = {

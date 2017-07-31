@@ -20,15 +20,26 @@ let variables = Object.keys(input).map(key => {
     return input[key];
 });
 
-let populationSize = 2;
+let populationSize = 100;
 let options = {
     operationProbability: 0.85,
     minDepth: 2,
-    maxDepth: 2
+    maxDepth: 7,
+    mutationProbability: 0.001
 };
 
 let population = Array.from(Array(populationSize), () => {
     return Chromosome.prototype._generate(availableOps, variables, options);
+});
+
+let fitnessResults = population.map(individual => {
+    return {fitness: individual.val(), individual};
+}).sort((a,b) => {
+    return b.fitness - a.fitness;
+});
+
+fitnessResults.forEach(fr => {
+    console.log(fr.individual.toString() + " = " + fr.fitness);
 });
 
 let offpsrings = rp.crossover(population[0], population[1], availableOps, variables);
