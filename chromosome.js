@@ -22,7 +22,7 @@ function Chromosome(functions, variables){
     this.nodes = () => {return this.gene.nodes()};
 };
 
-Chromosome.prototype._generateFromNodes = (geneJson, functions, variables) => {
+Chromosome.prototype._generateFromNodes = (geneNodes, functions, variables) => {
     let chromosome = new Chromosome(functions, variables);
     let mapGene = (gene) => {
         let geneId = gene.id;
@@ -36,7 +36,7 @@ Chromosome.prototype._generateFromNodes = (geneJson, functions, variables) => {
         let resolvedGeneArgs = geneArgs.map(g => mapGene(g));
         return new Gene(geneId, geneType, collection, ...resolvedGeneArgs);
     };
-    chromosome.gene = mapGene(geneJson);
+    chromosome.gene = mapGene(geneNodes);
     return chromosome;
 };
 

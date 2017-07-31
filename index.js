@@ -24,7 +24,7 @@ let populationSize = 100;
 let options = {
     operationProbability: 0.85,
     minDepth: 2,
-    maxDepth: 7,
+    maxDepth: 3,
     mutationProbability: 0.001
 };
 
@@ -32,13 +32,17 @@ let population = Array.from(Array(populationSize), () => {
     return Chromosome.prototype._generate(availableOps, variables, options);
 });
 
-let fitnessResults = population.map(individual => {
-    return {fitness: individual.val(), individual};
-}).sort((a,b) => {
-    return b.fitness - a.fitness;
-});
 
 let mutatedOffsprings = population.map(individual => {
     return rp.mutate(individual, options.mutationProbability, availableOps, variables);
 });
+
+
+// let fitnessResults = mutatedOffsprings.map(individual => {
+//     return {fitness: individual.val(), individual};
+// }).sort((a,b) => {
+//     return b.fitness - a.fitness;
+// });
+
+
 let offpsrings = rp.crossover(population[0], population[1], availableOps, variables);

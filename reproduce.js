@@ -82,10 +82,17 @@ let mutate = (parent, mutationProbability, functions, variables) => {
         while (mutatedId === id) {
             mutatedId = helper.getRandomInt(0, collection.length);
         }
-        return args && args.length ? {mutatedId, type, args} : {mutatedId, type};
+        if (isFunction) {
+            if (functions[mutatedId].type === 'binary' && args.length < 2) {
+                let newArgId = helper.getRandomInt(0, variables.length);
+                args.push({id: newArgId, type: 'variable'});
+            }
+        }
+        return args && args.length ? {id: mutatedId, type, args} : {id: mutatedId, type};
     });
-    
-    return hasMutation ? Chromosome.prototype._generateFromNodes(offspringNodes) : parent;
+
+    let offspring = hasMutation ? Chromosome.prototype._generateFromNodes(offspringNodes, functions, variables) : parent;
+    return offspring;
 };
 
 module.exports = {
