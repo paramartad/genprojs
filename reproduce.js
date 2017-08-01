@@ -1,9 +1,34 @@
-const Chromosome = require('./chromosome');
+const Chromosome = require('./dna/chromosome');
 const helper = require('./helper');
 
+const normalizeFitnessValues = (fitnessValues) => {
+    let sum = fitnessValues.reduce((acc, fv) => {
+        return acc + fv;
+    });
+    
+    return fitnessValues.map(fv => {
+        return fv / sum;
+    });
+};
 
+const rouletteWheelSelection =  (normalizedFitnessValues) => {
+    let randomTick = Math.random();
+    let currentIndex = -1;
+    let currentTick = 0;
+    do {
+        currentIndex++;
+        currentTick = currentTick + normalizedFitnessValues[currentIndex];
+    } while(currentTick < randomTick);
+    return currentIndex;
+};
 
-let getHierarchy = (index) => {
+const defaultOptions = {
+    crossoverProbability: 0.75,
+    mutationProbability: 0.001,
+    selectionFn: rouletteWheelSelection
+};
+
+const getHierarchy = (index) => {
     if (index <= 0) return [];
     
     let direction = (index-1) % 2;
@@ -11,7 +36,7 @@ let getHierarchy = (index) => {
     return Array.prototype.concat.call(getHierarchy(parentIndex), direction);
 };
 
-let getNodeAt = (currentNode, directions) => {
+const getNodeAt = (currentNode, directions) => {
     let direction = directions.shift();
     let nextNode = currentNode.args[direction];
     if (!nextNode) return null;
@@ -22,7 +47,7 @@ let getNodeAt = (currentNode, directions) => {
     return getNodeAt(nextNode, directions);
 };
 
-let assignNode = (nodes, candidateNode, hierarchy) => {
+const assignNode = (nodes, candidateNode, hierarchy) => {
     let iterateNodes = (currentNode, directions) => {
         let direction = directions.shift();
         let nextNode = currentNode.args[direction];
@@ -36,9 +61,9 @@ let assignNode = (nodes, candidateNode, hierarchy) => {
     iterateNodes(nodes, hierarchy)
 };
 
-let crossover = (parent1, parent2, functions, variables) => {
-    let parent1Nodes = parent1.nodes();
-    let parent2Nodes = parent2.nodes();
+const crossover = (parent1, parent2, functions, inputVariables) => {
+    let parent1Nodes = parent1.nodes(functions, inputVariables);
+    let parent2Nodes = parent2.nodes(functions, inputVariables);
 
     let depth = Math.min(parent1.depth(), parent2.depth()) + 1;
     let maxLength = Math.pow(2, depth) - 1;
@@ -61,13 +86,13 @@ let crossover = (parent1, parent2, functions, variables) => {
     assignNode(offspring1Nodes, swapCandidate2, hierarchy1);
     assignNode(offspring2Nodes, swapCandidate1, hierarchy2);
     
-    let offspring1 = Chromosome.prototype._generateFromNodes(offspring1Nodes, functions, variables);
-    let offspring2 = Chromosome.prototype._generateFromNodes(offspring2Nodes, functions, variables);
+    let offspring1 = Chromosome.prototype._generateFromNodes(offspring1Nodes, functions, inputVariables);
+    let offspring2 = Chromosome.prototype._generateFromNodes(offspring2Nodes, functions, inputVariables);
     
     return [offspring1, offspring2];
 };
 
-let mutate = (parent, mutationProbability, functions, variables) => {
+const mutate = (parent, mutationProbability, functions, inputVariables) => {
     let hasMutation = false;
     let offspringNodes = parent.map((fn, id, type, args) => {
         if (Math.random() > mutationProbability) {
@@ -77,25 +102,64 @@ let mutate = (parent, mutationProbability, functions, variables) => {
         hasMutation = true;
 
         let isFunction = type === 'function';
-        let collection = isFunction ? functions : variables;
+        let collection = isFunction ? functions : inputVariables;
         let mutatedId = id;
         while (mutatedId === id) {
             mutatedId = helper.getRandomInt(0, collection.length);
         }
         if (isFunction) {
             if (functions[mutatedId].type === 'binary' && args.length < 2) {
-                let newArgId = helper.getRandomInt(0, variables.length);
+                let newArgId = helper.getRandomInt(0, inputVariables.length);
                 args.push({id: newArgId, type: 'variable'});
             }
         }
         return args && args.length ? {id: mutatedId, type, args} : {id: mutatedId, type};
-    });
+    }, functions, inputVariables);
 
-    let offspring = hasMutation ? Chromosome.prototype._generateFromNodes(offspringNodes, functions, variables) : parent;
-    return offspring;
+    return Chromosome.prototype._generateFromNodes(offspringNodes, functions, inputVariables);
+};
+
+const getOffsprings = (parentPopulation, parentFitnessValues, functions, inputVariables, options) => {
+    options = Object.assign(defaultOptions, options);
+    let normalizedFitnessValues = normalizeFitnessValues(parentFitnessValues);
+    let crossoverProbability = options.crossoverProbability;
+    let mutationProbability = options.mutationProbability;
+    let trueMutationProbability = mutationProbability / (1-crossoverProbability);
+
+    let offsprings = [];
+    while (offsprings.length < parentPopulation.length) {
+        let offspring;
+        if (Math.random() < crossoverProbability) {
+            let chosenIndex1 = options.selectionFn(normalizedFitnessValues);
+            let chosenIndex2 = options.selectionFn(normalizedFitnessValues);
+            while (chosenIndex1 === chosenIndex2) {
+                chosenIndex2 = options.selectionFn(normalizedFitnessValues);
+            }
+
+            let parent1 = parentPopulation[chosenIndex1];
+            let parent2 = parentPopulation[chosenIndex2];
+            offsprings.push.apply(this, crossover(parent1, parent2, functions, inputVariables));
+            
+
+        } else {
+            let chosenIndex = options.selectionFn(normalizedFitnessValues);
+            let parent = parentPopulation[chosenIndex];
+            offsprings.push(mutate(parent, trueMutationProbability, functions, inputVariables));
+        }
+    }
+
+    if (offsprings.length > parentPopulation.length) {
+        offsprings = offsprings.slice(0, parentPopulation.length);
+    }
+
+    parentPopulation.forEach((o, i, a) => {
+        delete a[i];
+    });
+    return offsprings;
 };
 
 module.exports = {
     crossover,
-    mutate
+    mutate,
+    getOffsprings
 };
