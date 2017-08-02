@@ -45,15 +45,21 @@ const getGeneDepth = (gene) => {
 function Chromosome() {};
 
 Chromosome.prototype.toString = function(chromosome, functions, inputVariables) {
-    return displayGene(JSON.parse(chromosome), functions, inputVariables);
+    return chromosome instanceof Object ? 
+        displayGene(chromosome, functions, inputVariables) : 
+        displayGene(JSON.parse(chromosome), functions, inputVariables);
 };
 
 Chromosome.prototype.val = function(chromosome, functions, inputVariables, variablesTuple) {
-    return evalGene(JSON.parse(chromosome), functions, inputVariables, variablesTuple);
+    return chromosome instanceof Object ? 
+        evalGene(chromosome, functions, inputVariables, variablesTuple) : 
+        evalGene(JSON.parse(chromosome), functions, inputVariables, variablesTuple);
 };
 
 Chromosome.prototype.depth = function(chromosome) {
-    return chromosome instanceof Object ? getGeneDepth(chromosome) : getGeneDepth(JSON.parse(chromosome));
+    return chromosome instanceof Object ? 
+        getGeneDepth(chromosome) : 
+        getGeneDepth(JSON.parse(chromosome));
 };
 
 Chromosome.prototype.generate = (functions, inputVariables, options) => {
