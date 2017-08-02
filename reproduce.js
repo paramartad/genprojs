@@ -83,8 +83,8 @@ const mutateNode = (node, mutationProbability, functions, inputVariables) => {
 };
 
 const crossover = (parent1, parent2, functions, inputVariables) => {
-    let parent1Depth = Chromosome.prototype.depth(parent1);
-    let parent2Depth = Chromosome.prototype.depth(parent2);
+    let parent1Depth = Chromosome.depth(parent1);
+    let parent2Depth = Chromosome.depth(parent2);
     let depth = Math.min(parent1Depth, parent2Depth);
     
     let maxLength;

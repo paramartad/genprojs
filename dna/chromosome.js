@@ -91,4 +91,9 @@ Chromosome.prototype.generate = (functions, inputVariables, options) => {
     return JSON.stringify(getGene(functions, inputVariables, fnProb, 0, minDepth, maxDepth));
 };
 
-module.exports = Chromosome;
+module.exports = {
+    depth: Chromosome.prototype.depth,
+    generate: Chromosome.prototype.generate,
+    toString: Chromosome.prototype.toString,
+    val: Chromosome.prototype.val
+};
