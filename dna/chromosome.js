@@ -31,6 +31,17 @@ const evalGene = (gene, functions, inputVariables, variablesTuple) => {
     }
 };
 
+const getGeneDepth = (gene) => {
+    if (gene instanceof Array) {
+        return gene.map(getGeneDepth);
+    } else if (gene instanceof Object) {
+        let maxChildDepth = Math.max.apply(this, gene.args.map(getGeneDepth));
+        return maxChildDepth + 1;
+    } else {
+        return 0;
+    }
+};
+
 function Chromosome() {};
 
 Chromosome.prototype.toString = function(chromosome, functions, inputVariables) {
@@ -39,6 +50,10 @@ Chromosome.prototype.toString = function(chromosome, functions, inputVariables) 
 
 Chromosome.prototype.val = function(chromosome, functions, inputVariables, variablesTuple) {
     return evalGene(JSON.parse(chromosome), functions, inputVariables, variablesTuple);
+};
+
+Chromosome.prototype.depth = function(chromosome) {
+    return getGeneDepth(JSON.parse(chromosome));
 };
 
 Chromosome.prototype.generate = (functions, inputVariables, options) => {

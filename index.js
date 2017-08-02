@@ -63,7 +63,7 @@ let options = {
     populationSize: 100,
     operationProbability: 0.85,
     minDepth: 1,
-    maxDepth: 2,
+    maxDepth: 5,
     crossoverProbability: 0.75,
     mutationProbability: 0.001,
     maxIteration: 500,
@@ -77,6 +77,7 @@ let initialPopulation = Array.from(Array(options.populationSize), () => {
 });
 initialPopulation.forEach(individual => {
     console.log(Chromosome.prototype.toString(individual, availableOps, inputVariables) + ' = ' + Chromosome.prototype.val(individual, availableOps, inputVariables, variablesTuples[0]));
+    console.log('depth: ' + Chromosome.prototype.depth(individual));
 });
 
 
