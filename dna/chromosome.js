@@ -53,7 +53,7 @@ Chromosome.prototype.val = function(chromosome, functions, inputVariables, varia
 };
 
 Chromosome.prototype.depth = function(chromosome) {
-    return getGeneDepth(JSON.parse(chromosome));
+    return chromosome instanceof Object ? getGeneDepth(chromosome) : getGeneDepth(JSON.parse(chromosome));
 };
 
 Chromosome.prototype.generate = (functions, inputVariables, options) => {

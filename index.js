@@ -60,10 +60,10 @@ let fitnessFn = (individual, functions, inputVariables) => {
 };
 
 let options = {
-    populationSize: 100,
+    populationSize: 2,
     operationProbability: 0.85,
     minDepth: 1,
-    maxDepth: 5,
+    maxDepth: 2,
     crossoverProbability: 0.75,
     mutationProbability: 0.001,
     maxIteration: 500,
@@ -76,6 +76,10 @@ let initialPopulation = Array.from(Array(options.populationSize), () => {
     return Chromosome.prototype.generate(availableOps, inputVariables, options);
 });
 initialPopulation.forEach(individual => {
+    console.log(Chromosome.prototype.toString(individual, availableOps, inputVariables) + ' = ' + Chromosome.prototype.val(individual, availableOps, inputVariables, variablesTuples[0]));
+    console.log('depth: ' + Chromosome.prototype.depth(individual));
+});
+rp.crossover(JSON.parse(initialPopulation[0]), JSON.parse(initialPopulation[1])).forEach(individual => {
     console.log(Chromosome.prototype.toString(individual, availableOps, inputVariables) + ' = ' + Chromosome.prototype.val(individual, availableOps, inputVariables, variablesTuples[0]));
     console.log('depth: ' + Chromosome.prototype.depth(individual));
 });

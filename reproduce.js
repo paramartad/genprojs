@@ -52,7 +52,9 @@ const assignNode = (nodes, candidateNode, hierarchy) => {
         let direction = directions.shift();
         let nextNode = currentNode.args[direction];
         if (directions.length == 0) {
+            console.log(nextNode);
             nextNode = candidateNode;
+            console.log(nextNode);
             return;
         }
         iterateNodes(nextNode, directions);
@@ -62,14 +64,11 @@ const assignNode = (nodes, candidateNode, hierarchy) => {
 };
 
 const crossover = (parent1, parent2, functions, inputVariables) => {
-    let parent1Nodes = parent1.nodes(functions, inputVariables);
-    let parent2Nodes = parent2.nodes(functions, inputVariables);
-
-    let depth = Math.min(parent1.depth(), parent2.depth()) + 1;
+    let depth = Math.min(Chromosome.prototype.depth(parent1), Chromosome.prototype.depth(parent2)) + 1;
     let maxLength = Math.pow(2, depth) - 1;
 
-    let offspring1Nodes = JSON.parse(JSON.stringify(parent1Nodes));
-    let offspring2Nodes = JSON.parse(JSON.stringify(parent2Nodes));
+    let offspring1Nodes = Object.assign({}, parent1);
+    let offspring2Nodes = Object.assign({}, parent2);
 
     let hierarchy, swapCandidate1, swapCandidate2;
     while (!swapCandidate1 || !swapCandidate2) {
@@ -77,17 +76,20 @@ const crossover = (parent1, parent2, functions, inputVariables) => {
         hierarchy = getHierarchy(randomPos);
         let hierarchy1 = hierarchy.slice(0);
         let hierarchy2 = hierarchy.slice(0);
-        swapCandidate1 = getNodeAt(parent1Nodes, hierarchy1);
-        swapCandidate2 = getNodeAt(parent2Nodes, hierarchy2);
+        swapCandidate1 = getNodeAt(parent1, hierarchy1);
+        swapCandidate2 = getNodeAt(parent2, hierarchy2);
     }
-    let tempSwap = JSON.parse(JSON.stringify(swapCandidate2));
+    let tempSwap = Object.assign({}, swapCandidate2);
     let hierarchy1 = hierarchy.slice(0);
     let hierarchy2 = hierarchy.slice(0);
+    console.log(JSON.stringify(offspring1Nodes));
+    console.log(JSON.stringify(swapCandidate2));
     assignNode(offspring1Nodes, swapCandidate2, hierarchy1);
+    console.log(JSON.stringify(offspring1Nodes));
     assignNode(offspring2Nodes, swapCandidate1, hierarchy2);
     
-    let offspring1 = Chromosome.prototype._generateFromNodes(offspring1Nodes, functions, inputVariables);
-    let offspring2 = Chromosome.prototype._generateFromNodes(offspring2Nodes, functions, inputVariables);
+    let offspring1 = JSON.stringify(offspring1Nodes);
+    let offspring2 = JSON.stringify(offspring2Nodes);
     
     return [offspring1, offspring2];
 };
@@ -121,13 +123,16 @@ const mutate = (parent, mutationProbability, functions, inputVariables) => {
 
 const getOffsprings = (parentPopulation, parentFitnessValues, functions, inputVariables, options) => {
     options = Object.assign(defaultOptions, options);
+
+    let parsedParents = parentPopulation.map(JSON.parse);
     let normalizedFitnessValues = normalizeFitnessValues(parentFitnessValues);
+
     let crossoverProbability = options.crossoverProbability;
     let mutationProbability = options.mutationProbability;
     let trueMutationProbability = mutationProbability / (1-crossoverProbability);
 
     let offsprings = [];
-    while (offsprings.length < parentPopulation.length) {
+    while (offsprings.length < parsedParents.length) {
         let offspring;
         if (Math.random() < crossoverProbability) {
             let chosenIndex1 = options.selectionFn(normalizedFitnessValues);
@@ -136,25 +141,22 @@ const getOffsprings = (parentPopulation, parentFitnessValues, functions, inputVa
                 chosenIndex2 = options.selectionFn(normalizedFitnessValues);
             }
 
-            let parent1 = parentPopulation[chosenIndex1];
-            let parent2 = parentPopulation[chosenIndex2];
+            let parent1 = parsedParents[chosenIndex1];
+            let parent2 = parsedParents[chosenIndex2];
             offsprings.push.apply(this, crossover(parent1, parent2, functions, inputVariables));
             
 
         } else {
             let chosenIndex = options.selectionFn(normalizedFitnessValues);
-            let parent = parentPopulation[chosenIndex];
+            let parent = parsedParents[chosenIndex];
             offsprings.push(mutate(parent, trueMutationProbability, functions, inputVariables));
         }
     }
 
-    if (offsprings.length > parentPopulation.length) {
-        offsprings = offsprings.slice(0, parentPopulation.length);
+    if (offsprings.length > parsedParents.length) {
+        offsprings = offsprings.slice(0, parsedParents.length);
     }
 
-    parentPopulation.forEach((o, i, a) => {
-        delete a[i];
-    });
     return offsprings;
 };
 
