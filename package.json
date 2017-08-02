@@ -8,5 +8,9 @@
   },
   "author": "Dienul Paramarta",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/twinfifty/genprojs"
+  },
   "devDependencies": {}
 }
