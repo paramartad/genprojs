@@ -5,8 +5,6 @@ const Gene = require('./dna/gene');
 const Chromosome = require('./dna/chromosome');
 const rp = require('./reproduce');
 
-const heapdump = require('heapdump');
-
 const OperationTypes = Operation.prototype.operationTypes;
 
 let availableOps = Object.keys(BasicOperations).map(key => {
@@ -65,7 +63,7 @@ let options = {
     populationSize: 100,
     operationProbability: 0.85,
     minDepth: 1,
-    maxDepth: 3,
+    maxDepth: 2,
     crossoverProbability: 0.75,
     mutationProbability: 0.001,
     maxIteration: 500,
@@ -75,51 +73,55 @@ let options = {
 };
 
 let initialPopulation = Array.from(Array(options.populationSize), () => {
-    return Chromosome.prototype._generate(availableOps, inputVariables, options);
+    return Chromosome.prototype.generate(availableOps, inputVariables, options);
+});
+initialPopulation.forEach(individual => {
+    console.log(Chromosome.prototype.toString(individual, availableOps, inputVariables) + ' = ' + Chromosome.prototype.val(individual, availableOps, inputVariables, variablesTuples[0]));
 });
 
-let iterate = (population, functions, inputVariables, options, currentGeneration) => {
-    if (Object.prototype.toString.call(options.goalFn) === '[object Function]') {
-        let achievedGoals = population.filter(individual => options.goalFn(individual, functions, inputVariables));
-        if (achievedGoals.length > 0) {
-            console.log(achievedGoals.length + ' individuals meeting goal function found');
-            achievedGoals.forEach((individual) => console.log(individual.toString(functions, inputVariables)));
-            return [population, achievedGoals];
-        }
-    }
+
+// let iterate = (population, functions, inputVariables, options, currentGeneration) => {
+//     if (Object.prototype.toString.call(options.goalFn) === '[object Function]') {
+//         let achievedGoals = population.filter(individual => options.goalFn(individual, functions, inputVariables));
+//         if (achievedGoals.length > 0) {
+//             console.log(achievedGoals.length + ' individuals meeting goal function found');
+//             achievedGoals.forEach((individual) => console.log(individual.toString(functions, inputVariables)));
+//             return [population, achievedGoals];
+//         }
+//     }
     
-    let fitnessVals = population.map(individual => options.fitnessFn(individual, functions, inputVariables));
-    let populationFitnessVal = fitnessVals.reduce((sum, fv) => sum + fv) / fitnessVals.length;
-    console.log('Generation ' + currentGeneration + ' population fitness: ' + populationFitnessVal);
+//     let fitnessVals = population.map(individual => options.fitnessFn(individual, functions, inputVariables));
+//     let populationFitnessVal = fitnessVals.reduce((sum, fv) => sum + fv) / fitnessVals.length;
+//     console.log('Generation ' + currentGeneration + ' population fitness: ' + populationFitnessVal);
 
-    if (options.maxIteration - currentGeneration <= 0) {
-        console.log('Maximum iterations reached');
-        return [population, []];
-    }
+//     if (options.maxIteration - currentGeneration <= 0) {
+//         console.log('Maximum iterations reached');
+//         return [population, []];
+//     }
 
-    let offsprings = rp.getOffsprings(population, fitnessVals, functions, inputVariables, options);
-    currentGeneration++;
-    return [offsprings, []];
-}
+//     let offsprings = rp.getOffsprings(population, fitnessVals, functions, inputVariables, options);
+//     currentGeneration++;
+//     return [offsprings, []];
+// }
 
-let currentGeneration = 0;
-population = initialPopulation;
-let program = {
-    population: initialPopulation
-};
+// let currentGeneration = 0;
+// population = initialPopulation;
+// let program = {
+//     population: initialPopulation
+// };
 
-while (currentGeneration <= options.maxIteration) {
-    let result = iterate(program.population, availableOps, inputVariables, options, currentGeneration);
-    if (result[1].length) break;
+// while (currentGeneration <= options.maxIteration) {
+//     let result = iterate(program.population, availableOps, inputVariables, options, currentGeneration);
+//     if (result[1].length) break;
 
-    program.population = result[0];
-    currentGeneration++;
+//     program.population = result[0];
+//     currentGeneration++;
     
-    let memoryUsage = process.memoryUsage().heapUsed;
-    if (memoryUsage > options.maxMemory) {
-        console.log('WARNING: Maximum memory reached');
-        console.log(Math.round(memoryUsage) / 1024 / 1024 + ' MB');
-        console.log('Exiting program now');
-        break;
-    }
-}
+//     let memoryUsage = process.memoryUsage().heapUsed;
+//     if (memoryUsage > options.maxMemory) {
+//         console.log('WARNING: Maximum memory reached');
+//         console.log(Math.round(memoryUsage) / 1024 / 1024 + ' MB');
+//         console.log('Exiting program now');
+//         break;
+//     }
+// }
