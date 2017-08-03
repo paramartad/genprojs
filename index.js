@@ -6,10 +6,6 @@ const rp = require('./reproduce');
 
 const OperationTypes = Operation.prototype.operationTypes;
 
-const BasicMathOperations = Object.keys(BasicOperations).map(key => {
-    return BasicOperations[key];
-});
-
 const defaultOptions = {
     populationSize: 100,
     operationProbability: 0.75,
@@ -136,7 +132,7 @@ const run = (functions, inputVariables, trainingData, testData, options) => {
 
 
 module.exports = {
-    BasicMathOperations: BasicMathOperations,
+    BasicMathOperations: BasicOperations,
     Chromosome: Chromosome,
     Operation: Operation,
     run: run,
