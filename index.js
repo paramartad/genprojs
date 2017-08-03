@@ -50,8 +50,6 @@ const calculateStat = (fitnessFn, population, functions, variables, data) => {
     };
 
     console.log('BEST INDIVIDUAL: ' + Chromosome.toString(stat.maxIndividual, functions, variables));
-    console.log('2nd BEST INDIVIDUAL: ' + Chromosome.toString(populationWithFitness[populationWithFitness.length - 2], functions, variables));
-    console.log('3rd BEST INDIVIDUAL: ' + Chromosome.toString(populationWithFitness[populationWithFitness.length - 3], functions, variables));
     console.log('MAX: ' + stat.max);
     console.log('AVG: ' + stat.average);
     console.log('MIN: ' + stat.min);
