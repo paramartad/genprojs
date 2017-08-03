@@ -70,10 +70,6 @@ const iterate = (population, functions, variables, options, trainingData, testDa
             return [population, achievedGoals];
         }
     }
-    
-    let fitnessVals = getPopulationFitnessValues(options.fitnessFn, population, functions, variables, trainingData);
-    let populationFitnessVal = fitnessVals.reduce((sum, fv) => sum + fv) / fitnessVals.length;
-    console.log('Generation ' + currentGeneration + ' population fitness: ' + populationFitnessVal);
 
     if (options.maxIteration - currentGeneration <= 0) {
         console.log('Maximum iterations reached');
@@ -91,8 +87,15 @@ const run = (functions, variables, trainingData, testData, options) => {
     let population = generatePopulation(options.populationSize, functions, variables, options);
 
     let currentGeneration = 0;
+    let avgFitnessHistory = [];
     while (currentGeneration <= options.maxIteration) {
         let result = iterate(population, functions, variables, options, trainingData, testData, currentGeneration);
+
+        let fitnessVals = getPopulationFitnessValues(options.fitnessFn, population, functions, variables, testData);
+        let populationFitnessVal = fitnessVals.reduce((sum, fv) => sum + fv) / fitnessVals.length;
+        console.log('Generation ' + currentGeneration + ' population fitness: ' + populationFitnessVal);
+        avgFitnessHistory.push(populationFitnessVal);
+
         if (result[1].length) break;
 
         if (result.length > 1 && result[1].length) {
@@ -105,6 +108,7 @@ const run = (functions, variables, trainingData, testData, options) => {
             return {
                 population: population,
                 goals: achievedGoals,
+                history: avgFitnessHistory,
                 stat: stat
             };
         }
@@ -126,6 +130,7 @@ const run = (functions, variables, trainingData, testData, options) => {
     return {
         population: population,
         goals: [],
+        history: avgFitnessHistory,
         stat: stat
     };
 };

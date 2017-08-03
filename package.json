@@ -1,6 +1,6 @@
 {
   "name": "genprojs",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Simple Genetic Programming Framework for Javascript",
   "main": "index.js",
   "scripts": {
