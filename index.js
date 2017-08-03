@@ -17,14 +17,14 @@ const defaultOptions = {
     maxMemory: -1
 };
 
-const getPopulationFitnessValues = (fitnessFn, population, functions, inputVariables, data) => {
-    return population.map(individual => fitnessFn(individual, functions, inputVariables, data));
+const getPopulationFitnessValues = (fitnessFn, population, functions, variables, data) => {
+    return population.map(individual => fitnessFn(individual, functions, variables, data));
 };
 
-const calculateStat = (fitnessFn, population, functions, inputVariables, data) => {
+const calculateStat = (fitnessFn, population, functions, variables, data) => {
     console.log('Calculating stat using test data');
 
-    let fitnessVals = getPopulationFitnessValues(fitnessFn, population, functions, inputVariables, data);
+    let fitnessVals = getPopulationFitnessValues(fitnessFn, population, functions, variables, data);
     let populationWithFitness = population.map((individual, i, pop) => {
         return {
             individual,
@@ -49,7 +49,8 @@ const calculateStat = (fitnessFn, population, functions, inputVariables, data) =
         maxIndividual: max.individual
     };
 
-    console.log('BEST INDIVIDUAL: ' + Chromosome.toString(stat.maxIndividual, functions, inputVariables));
+    console.log('BEST INDIVIDUAL: ' + Chromosome.toString(stat.maxIndividual, functions, variables));
+    console.log('2nd BEST INDIVIDUAL: ' + Chromosome.toString(stat.maxIndividual, functions, variables));
     console.log('MAX: ' + stat.max);
     console.log('AVG: ' + stat.average);
     console.log('MIN: ' + stat.min);
@@ -57,21 +58,21 @@ const calculateStat = (fitnessFn, population, functions, inputVariables, data) =
     return stat;
 };
 
-const generatePopulation = (populationSize, functions, inputVariables, options) => {
+const generatePopulation = (populationSize, functions, variables, options) => {
     return Array.from(Array(populationSize), () => {
-        return Chromosome.generate(functions, inputVariables, options);
+        return Chromosome.generate(functions, variables, options);
     });
 };
 
-const iterate = (population, functions, inputVariables, options, trainingData, testData, currentGeneration) => {
+const iterate = (population, functions, variables, options, trainingData, testData, currentGeneration) => {
     if (Object.prototype.toString.call(options.goalFn) === '[object Function]') {
-        let achievedGoals = population.filter(individual => options.goalFn(individual, functions, inputVariables, testData));
+        let achievedGoals = population.filter(individual => options.goalFn(individual, functions, variables, testData));
         if (achievedGoals.length > 0) {
             return [population, achievedGoals];
         }
     }
     
-    let fitnessVals = getPopulationFitnessValues(options.fitnessFn, population, functions, inputVariables, trainingData);
+    let fitnessVals = getPopulationFitnessValues(options.fitnessFn, population, functions, variables, trainingData);
     let populationFitnessVal = fitnessVals.reduce((sum, fv) => sum + fv) / fitnessVals.length;
     console.log('Generation ' + currentGeneration + ' population fitness: ' + populationFitnessVal);
 
@@ -80,26 +81,26 @@ const iterate = (population, functions, inputVariables, options, trainingData, t
         return [population, []];
     }
 
-    let offsprings = rp.getOffsprings(population, fitnessVals, functions, inputVariables, options);
+    let offsprings = rp.getOffsprings(population, fitnessVals, functions, variables, options);
     currentGeneration++;
     
     return [offsprings, []];
 };
 
-const run = (functions, inputVariables, trainingData, testData, options) => {
+const run = (functions, variables, trainingData, testData, options) => {
     options = Object.assign(defaultOptions, options);
-    let population = generatePopulation(options.populationSize, functions, inputVariables, options);
+    let population = generatePopulation(options.populationSize, functions, variables, options);
 
     let currentGeneration = 0;
     while (currentGeneration <= options.maxIteration) {
-        let result = iterate(population, functions, inputVariables, options, trainingData, testData, currentGeneration);
+        let result = iterate(population, functions, variables, options, trainingData, testData, currentGeneration);
         if (result[1].length) break;
 
         if (result.length > 1 && result[1].length) {
             let achievedGoals = result[1];
             console.log(achievedGoals.length + ' individuals meeting goal function found');
-            achievedGoals.forEach((individual) => console.log(Chromosome.toString(individual, functions, inputVariables)));
-            let stat = calculateStat(options.fitnessFn, population, functions, inputVariables, testData);
+            achievedGoals.forEach((individual) => console.log(Chromosome.toString(individual, functions, variables)));
+            let stat = calculateStat(options.fitnessFn, population, functions, variables, testData);
 
             console.log('EXITING PROGRAM');
             return {
@@ -120,7 +121,7 @@ const run = (functions, inputVariables, trainingData, testData, options) => {
             break;
         }
     }
-    let stat = calculateStat(options.fitnessFn, population, functions, inputVariables, testData);
+    let stat = calculateStat(options.fitnessFn, population, functions, variables, testData);
     console.log('END OF RUN');
 
     return {
