@@ -71,6 +71,7 @@ const iterate = (population, functions, variables, options, trainingData, testDa
         }
     }
 
+    let fitnessVals = getPopulationFitnessValues(options.fitnessFn, population, functions, variables, trainingData);
     if (options.maxIteration - currentGeneration <= 0) {
         console.log('Maximum iterations reached');
         return [population, []];
