@@ -61,6 +61,12 @@ const calculateStat = (fitnessFn, population, functions, inputVariables, data) =
     return stat;
 };
 
+const generatePopulation = (populationSize, functions, inputVariables, options) => {
+    return Array.from(Array(populationSize), () => {
+        return Chromosome.generate(functions, inputVariables, options);
+    });
+};
+
 const iterate = (population, functions, inputVariables, options, trainingData, testData, currentGeneration) => {
     if (Object.prototype.toString.call(options.goalFn) === '[object Function]') {
         let achievedGoals = population.filter(individual => options.goalFn(individual, functions, inputVariables, testData));
@@ -84,8 +90,9 @@ const iterate = (population, functions, inputVariables, options, trainingData, t
     return [offsprings, []];
 };
 
-const run = (population, functions, inputVariables, trainingData, testData, options) => {
+const run = (functions, inputVariables, trainingData, testData, options) => {
     options = Object.assign(defaultOptions, options);
+    let population = generatePopulation(options.populationSize, functions, inputVariables, options);
 
     let currentGeneration = 0;
     while (currentGeneration <= options.maxIteration) {
